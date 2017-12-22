@@ -1,0 +1,25 @@
+---
+- name: Include OS-specific variables (Debian).
+  include_vars: "{{ ansible_distribution }}-{{ ansible_distribution_version.split('.')[0] }}.yml"
+  when: ansible_os_family == 'Debian'
+
+- name: Include OS-specific variables (RedHat).
+  include_vars: "{{ ansible_os_family }}-{{ ansible_distribution_version.split('.')[0] }}.yml"
+  when: ansible_os_family == 'RedHat'
+
+#Ubuntu support will be added in the future.
+
+- name: prerequiste tasks
+  include: xnat_preq.yml
+
+- name: create postgresql user and DB
+  include: postgres_user_db.yml
+
+#if more db engine to be supported in the future,
+#just add condition to the above task.
+
+- name: install xnat
+  include: install_xnat.yml
+
+- name: install pipeline engine
+  include: install_pipeline_engine.yml

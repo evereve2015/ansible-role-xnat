@@ -1,0 +1,59 @@
+---
+- name: create xnat data directory
+  file:
+    path: "{{ xnat_data_dir }}"
+    mode: '0775'
+    state: directory
+
+- name: create xnat group
+  group:
+    name: "{{ xnat_group }}"
+    state: present
+
+- name: create xnat user
+  user:
+    name: "{{ xnat_user }}"
+    group: "{{ xnat_group }}"
+    home: "{{ xnat_home }}"
+    state: present
+    comment: "xnat user"
+
+- name: create xnat home sub-directories
+  file:
+    path: "{{ xnat_home }}/{{ item }}"
+    group: "{{ xnat_group }}"
+    owner: "{{ xnat_user }}"
+    mode: '0775'
+    state: directory
+  with_items:
+    - "{{ xnat_home_subdirs }}"
+
+- name: create xnat data sub-directories
+  file:
+    path: "{{ xnat_data_dir }}/{{ item }}"
+    group: "{{ xnat_group }}"
+    owner: "{{ xnat_user }}"
+    mode: '0775'
+    state: directory
+  with_items:
+    - "{{ xnat_data_subdirs }}"
+
+- name: make sure xnat data dir ownership and permission
+  file:
+    path: "{{ xnat_data_dir }}"
+    group: "{{ xnat_group }}"
+    owner: "{{ xnat_user }}"
+    mode: '0775'
+    recurse: yes
+    state: directory
+#add postgresql/tomcat user into xnat group
+#all the xnat data dirs will have 775 permission
+#therefore, postgresql/tomcat user will be able to write to those dirs.
+- name: add postgresql and tomcat user into xnat group
+  user:
+    name: "{{ item }}"
+    groups: "{{ xnat_group }}"
+    state: present
+  with_items:
+    - "{{ postgresql_user }}"
+    - tomcat

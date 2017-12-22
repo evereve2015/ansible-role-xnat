@@ -1,0 +1,5 @@
+---
+dependencies:
+  - geerlingguy.java
+  - ansible-role-tomcat7
+  - geerlingguy.postgresql

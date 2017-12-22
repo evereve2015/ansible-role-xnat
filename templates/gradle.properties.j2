@@ -1,0 +1,11 @@
+xnatUrl='http://{{ ansible_hostname }}:8080/'
+siteName=XNAT
+adminEmail={{ admin_email }}
+smtpServer={{ solar_mail_relay }}
+destination={{ xnat_data_dir }}/pipeline
+{% if proxy_addr != '' %}
+systemProp.https.proxyHost={{ proxy_addr }}
+{% endif %}
+{% if proxy_port != '' %}
+systemProp.https.proxyPort={{ proxy_port }}
+{% endif %}

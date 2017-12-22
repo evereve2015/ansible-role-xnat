@@ -1,0 +1,31 @@
+---
+- name: create xnat user in postgresql db server
+  postgresql_user:
+    name: "{{ xnat_db_user }}"
+    password: "{{ xnat_db_password }}"
+    state: present
+  become: yes
+  become_user: "{{ postgresql_user }}"
+  delegate_to: "{{ xnat_db_server }}"
+  vars:
+    ansible_ssh_pipelining: true
+
+- name: create xnat data db in postgresql db server
+  postgresql_db:
+    name: "{{ xnat_db_name }}"
+    owner: "{{ xnat_db_user }}"
+    state: present
+  become: yes
+  become_user: "{{ postgresql_user }}"
+  delegate_to: "{{ xnat_db_server }}"
+  vars:
+    ansible_ssh_pipelining: true
+
+- name: create hba entry for new xnat user and DB.
+  lineinfile:
+    path: "{{ postgresql_config_path }}/pg_hba.conf"
+    insertafter: EOF
+    line: "host {{ xnat_db_name }} {{ xnat_db_user }} {{ ansible_default_ipv4.address }}/32 md5"
+    state: present
+  delegate_to: "{{ xnat_db_server }}"
+  notify: restart postgresql

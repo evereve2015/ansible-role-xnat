@@ -1,0 +1,46 @@
+---
+- name: create temp dir
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ temp_dir }}"
+    - "{{ temp_dir }}/{{ pipeline_version }}"
+
+- name: install unzip
+  yum:
+    name: unzip
+    state: installed
+
+- name: download pipeline engine
+  get_url:
+    dest: "{{ temp_dir }}/xnat-pipeline-{{ pipeline_version }}.zip"
+    url: "https://api.github.com/repos/NrgXnat/xnat-pipeline-engine/zipball/{{ pipeline_version }}"
+
+- name: unpack the zip file
+  unarchive:
+    src: "{{ temp_dir }}/xnat-pipeline-{{ pipeline_version }}.zip"
+    dest: "{{ temp_dir }}/{{ pipeline_version }}"
+    remote_src: yes
+
+- name: find the setup file
+  find:
+    path: "{{ temp_dir }}/{{ pipeline_version }}"
+    patterns: 'setup.sh'
+    recurse: yes
+  register: found_setup
+
+- name: copy installation config file
+  template:
+    src: gradle.properties.j2
+    dest: "{{ found_setup.files.0.path | dirname }}/gradle.properties"
+
+- name: define proxy settings #in this gradlew package, it supports http proxy only.
+  set_fact:
+    proxy_opts: "-Dhttp.proxyHost={{ proxy_addr }} -Dhttp.proxyPort={{ proxy_port }}"
+  when: use_proxy
+
+- name: install pipeline engine
+  shell:
+    cd "{{ found_setup.files.0.path | dirname }}" && ./gradlew "{{ proxy_opts }}"
+  notify: restart tomcat

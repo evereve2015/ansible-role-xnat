@@ -1,0 +1,45 @@
+---
+- name: configure XNAT home
+  lineinfile:
+    path: "{{ tomcat_conf_file }}"
+    insertafter: EOF
+    line: 'CATALINA_OPTS="-Dxnat.home={{ xnat_home }}"'
+    state: present
+
+# - name: update tomecat lib dir's ownership
+#   shell: "{{ item }}"
+#   with_items:
+#     - 'chown -RL --dereference {{ xnat_user }}:{{ xnat_group }} {{ tomcat_dir }}'
+#     - 'chown --no-dereference {{ xnat_user }}:{{ xnat_group }} {{ tomcat_dir }}/*'
+#   when: ansible_os_family == 'RedHat'
+  # file: #alternative solution of using file module
+  #   path: "{{ tomcat_dir }}"
+  #   owner: "{{ xnat_user }}"
+  #   group: "{{ xnat_group }}"
+  #   recurse: yes
+# above step was documented in the XNAT installation document. However, it doesn't seem
+# to help with the installation process. Therefore, the step was commented, but left in
+# the role as reference.
+# https://wiki.xnat.org/display/XNAT17/XNAT+Installation+Guide
+
+- name: remove the tomcat web root dir, eg /var/lib/tomcat/webapps/ROOT
+  file:
+    path: "{{ tomcat_dir }}/webapps/ROOT"
+    state: absent
+
+- name: copy xnat-conf.properties file
+  template:
+    src: xnat-conf.properties.j2
+    dest: "{{ xnat_home }}/config/xnat-conf.properties"
+    owner: "{{ xnat_user }}"
+    group: "{{ xnat_group }}"
+    mode: 0644
+
+- name: download and deploy XNAT war file
+  get_url:
+    url: "https://api.bitbucket.org/2.0/repositories/xnatdev/xnat-web/downloads/xnat-web-{{ xnat_version }}.war"
+    dest: "{{ tomcat_dir }}/webapps/ROOT.war"
+    owner: "{{ xnat_user }}"
+    group: "{{ xnat_group }}"
+    mode: 0644
+  notify: restart tomcat

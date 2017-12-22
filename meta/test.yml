@@ -1,0 +1,26 @@
+---
+# Description : Install and configure Java, Tomcat, PostgreSQL and XNAT
+- hosts: xnat
+  become: yes
+  gather_facts: yes
+  vars:
+    use_proxy: True
+    http_proxy_addr: 'aproxy.com'
+    http_proxy_port: 3128
+    admin_email: 'xxx@xnat.org'
+  pre_tasks:
+    - name: disable sudo requires tty
+      lineinfile:
+        path: /etc/sudoers
+        regexp: '^Defaults.*requiretty'
+        line: '#Defaults    requiretty'
+        backup: yes
+        validate: '/usr/sbin/visudo -cf %s'
+    - name: define proxy env
+
+  roles:
+    - role: projects/xnat
+
+  environment:
+    https_proxy: "http://{{ proxy_addr }}:{{ proxy_port }}"
+    http_proxy: "http://{{ proxy_addr }}:{{ proxy_port }}"

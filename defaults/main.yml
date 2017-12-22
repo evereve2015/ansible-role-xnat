@@ -1,0 +1,29 @@
+---
+xnat_version: 1.7.4.1
+pipeline_version: 1.7.4
+xnat_data_dir: /data/xnat
+temp_dir: /tmp/xnat
+xnat_home: "{{ xnat_data_dir }}/home"
+xnat_home_subdirs:
+  - config
+  - logs
+  - plugins
+  - work
+xnat_data_subdirs:
+  - archive
+  - build
+  - cache
+  - ftp
+  - pipeline
+  - prearchive
+xnat_user: xnat
+xnat_group: xnat
+xnat_db_user: "{{ xnat_user }}"
+xnat_db_name: "{{ xnat_user }}_db"
+xnat_db_password: "stored in vault."
+xnat_db_server: "{{ ansible_hostname }}"
+admin_email: 'xnat@xnat.org'
+use_proxy: False
+proxy_addr: ''
+proxy_port: ''
+proxy_opts: ''
